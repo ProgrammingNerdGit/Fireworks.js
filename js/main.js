@@ -1,13 +1,42 @@
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
+const minimal_spawn_delay = 100;
 
 let rockets = [];
+
+function spawn_rocket(x, y) {
+    rockets.push(new Rocket(x, y, context));
+}
 
 canvas.addEventListener("click", function (e) {
     let x = e.pageX - this.offsetLeft;
     let y = e.pageY - this.offsetTop;
-    let rocket = new Rocket(x, y, context);
-    rockets.push(rocket);
+    spawn_rocket(x, y);
+});
+
+let last_spawn = Date.now();
+
+let mouse_down = false;
+
+window.addEventListener("mousedown", function () {
+    mouse_down = true;
+});
+
+window.addEventListener("mouseup", function () {
+    mouse_down = false;
+});
+
+canvas.addEventListener("mousemove", function (e) {
+    if (mouse_down) {
+        let now = Date.now();
+        let delta = now - last_spawn;
+        if (delta > minimal_spawn_delay) {
+            let x = e.pageX - this.offsetLeft;
+            let y = e.pageY - this.offsetTop;
+            spawn_rocket(x, y);
+            last_spawn = now;
+        }
+    }
 });
 
 window.onresize = resize;
@@ -26,7 +55,8 @@ function draw() {
     let now = Date.now();
     let delta = now - last_frame;
     last_frame = now;
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     rockets.forEach(rocket => {
         rocket.update(context, delta);
     });
