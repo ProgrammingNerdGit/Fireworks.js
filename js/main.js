@@ -8,13 +8,14 @@ function spawn_rocket(x, y) {
     rockets.push(new Rocket(x, y, context));
 }
 
+let last_spawn = Date.now();
+
 canvas.addEventListener("click", function (e) {
     let x = e.pageX - this.offsetLeft;
     let y = e.pageY - this.offsetTop;
     spawn_rocket(x, y);
+    last_spawn = Date.now();
 });
-
-let last_spawn = Date.now();
 
 let mouse_down = false;
 
