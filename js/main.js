@@ -1,34 +1,40 @@
-const canvas_element = document.getElementById("canvas");
-const canvas = canvas_element.getContext("2d");
+const canvas = document.getElementById("canvas");
+const context = canvas.getContext("2d");
 
 let rockets = [];
 
-canvas_element.addEventListener("click", function (e) {
-  let x = e.pageX - this.offsetLeft;
-  let y = e.pageY - this.offsetTop;
-  let rocket = new Rocket(x, y);
-  console.log("x: " + x + " y: " + y);
-  rockets.push(rocket);
-  console.log(rockets);
+canvas.addEventListener("click", function (e) {
+    let x = e.pageX - this.offsetLeft;
+    let y = e.pageY - this.offsetTop;
+    let rocket = new Rocket(x, y, context);
+    rockets.push(rocket);
 });
 
 window.onresize = resize;
 
 function resize() {
-  canvas_element.width = window.innerWidth;
-  canvas_element.height = window.innerHeight;
+    if (context.width === window.innerWidth && context.height === window.innerHeight) {
+        return;
+    }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 
+let last_frame = Date.now();
+
 function draw() {
-  canvas.clearRect(0, 0, canvas_element.width, canvas_element.height);
-  rockets.forEach(rocket => {
-    rocket.update(canvas);
-  });
-  rockets = rockets.filter(rocket => rocket.alive);
-  rockets.forEach(rocket => {
-    rocket.draw(canvas);
-  });
-  requestAnimationFrame(draw);
+    let now = Date.now();
+    let delta = now - last_frame;
+    last_frame = now;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    rockets.forEach(rocket => {
+        rocket.update(context, delta);
+    });
+    rockets = rockets.filter(rocket => rocket.alive);
+    rockets.forEach(rocket => {
+        rocket.draw(context);
+    });
+    requestAnimationFrame(draw);
 }
 
 resize();
