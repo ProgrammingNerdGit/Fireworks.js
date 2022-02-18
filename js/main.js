@@ -1,9 +1,9 @@
 let canvas = document.querySelector('canvas');
 
-let num_lights = 1
+let num_lights = 10
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = 1000;
+canvas.height = 500;
 
 let ctx = canvas.getContext('2d')
 let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -25,7 +25,8 @@ for(let i = 0; i < num_lights; i++){
         Math.random()*canvas.width,
         Math.random()*canvas.height,
         Math.sin(a)*1,
-        Math.cos(a)*1
+        Math.cos(a)*1,
+        [Math.random()*255,Math.random()*255,Math.random()*255]
     ];
     lightPoints.push(obj);
 }
@@ -61,9 +62,13 @@ function animation(){
 
                 let dist = Math.sqrt(dx+dy);
 
-                let mag = 255/dist * 10; //! 10 IS INTENCITY
+                let intensity = 5,
+                    disspersion = 1;
 
-                colorMatrix[x][y] = [mag+colorMatrix[x][y][0], mag+colorMatrix[x][y][1], mag+colorMatrix[x][y][2]]
+                colorMatrix[x][y] = [
+                    ((point[4][0]*disspersion)/dist)*intensity+colorMatrix[x][y][0], 
+                    ((point[4][1]*disspersion)/dist)*intensity+colorMatrix[x][y][1], 
+                    ((point[4][2]*disspersion)/dist)*intensity+colorMatrix[x][y][2]]
             }
         }
     });
@@ -71,7 +76,7 @@ function animation(){
     for(let x = 0; x < canvas.width; x++){
         for(let y = 0; y < canvas.height; y++){
             let color = colorMatrix[x][y];
-            drawPixel(x, y, color[0]/num_lights, color[1]/num_lights, color[2]/num_lights, 255);
+            drawPixel(x, y, color[0], color[1], color[2], 255);
             colorMatrix[x][y] = [0,0,0]
         }
     }  
