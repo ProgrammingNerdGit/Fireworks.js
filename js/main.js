@@ -1,35 +1,84 @@
-const canvas_element = document.getElementById("canvas");
-const canvas = canvas_element.getContext("2d");
+let canvas = document.querySelector('canvas');
 
-let rockets = [];
+let num_lights = 1
 
-canvas_element.addEventListener("click", function (e) {
-  let x = e.pageX - this.offsetLeft;
-  let y = e.pageY - this.offsetTop;
-  let rocket = new Rocket(x, y);
-  console.log("x: " + x + " y: " + y);
-  rockets.push(rocket);
-  console.log(rockets);
-});
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-window.onresize = resize;
+let ctx = canvas.getContext('2d')
+let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-function resize() {
-  canvas_element.width = window.innerWidth;
-  canvas_element.height = window.innerHeight;
+let baseColorMatrix = []
+for(let x = 0; x < canvas.width; x++){
+    baseColorMatrix.push([]);
+    for(let y = 0; y < canvas.height; y++)
+        baseColorMatrix[x][y] = [0,0,0]
+}
+    
+let cvMapCol = Math.sqrt((canvas.width*canvas.width) + (canvas.height*canvas.height))/4;
+
+//
+let lightPoints = []; // [x, y, vx, vy]
+for(let i = 0; i < num_lights; i++){
+    a = Math.random() * Math.PI;
+    obj = [
+        Math.random()*canvas.width,
+        Math.random()*canvas.height,
+        Math.sin(a)*1,
+        Math.cos(a)*1
+    ];
+    lightPoints.push(obj);
 }
 
-function draw() {
-  canvas.clearRect(0, 0, canvas_element.width, canvas_element.height);
-  rockets.forEach(rocket => {
-    rocket.update(canvas);
-  });
-  rockets = rockets.filter(rocket => rocket.alive);
-  rockets.forEach(rocket => {
-    rocket.draw(canvas);
-  });
-  requestAnimationFrame(draw);
+function drawPixel (x, y, r, g, b, a) {
+    var index = (x + y * canvas.width) * 4;
+    
+    canvasData.data[index + 0] = r;
+    canvasData.data[index + 1] = g;
+    canvasData.data[index + 2] = b;
+    canvasData.data[index + 3] = a;
 }
 
-resize();
-draw();
+function update(){
+    lightPoints.forEach(point => {
+        point[0] += point[2];
+        point[1] += point[3];
+    });
+}
+
+function animation(){
+    requestAnimationFrame(animation);
+    
+    update();
+
+    let colorMatrix = [...baseColorMatrix]
+
+    lightPoints.forEach(point => {
+        for(let x = 0; x < canvas.width; x++){
+            for(let y = 0; y < canvas.height; y++){
+                let dx = (x-point[0])*(x-point[0])
+                let dy = (y-point[1])*(y-point[1])
+
+                let dist = Math.sqrt(dx+dy);
+
+                let mag = 255/dist * 10; //! 10 IS INTENCITY
+
+                colorMatrix[x][y] = [mag+colorMatrix[x][y][0], mag+colorMatrix[x][y][1], mag+colorMatrix[x][y][2]]
+            }
+        }
+    });
+
+    for(let x = 0; x < canvas.width; x++){
+        for(let y = 0; y < canvas.height; y++){
+            let color = colorMatrix[x][y];
+            drawPixel(x, y, color[0]/num_lights, color[1]/num_lights, color[2]/num_lights, 255);
+            colorMatrix[x][y] = [0,0,0]
+        }
+    }  
+    
+    
+
+    ctx.putImageData(canvasData, 0, 0);
+}
+
+animation();
